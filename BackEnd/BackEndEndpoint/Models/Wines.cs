@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BackEndEndpoint.Models
 {
-    public class Wines
+    public class Wines : Helpers.IIdEntity
     {
         [Key]
         public string Id { get; set; }
