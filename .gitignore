@@ -1,0 +1,60 @@
+###############################
+# Global ignores
+###############################
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.tmp
+*.temp
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Logs
+*.log
+logs/
+
+###############################
+# Backend (.NET / C#)
+###############################
+# Build
+bin/
+obj/
+out/
+[Bb]uild/
+[Ll]og/
+
+# Visual Studio
+.vs/
+*.vsidx
+*.db
+*.opendb
+*.user
+*.suo
+*.rsuser
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+
+# SQL
+*.mdf
+*.ldf
+
+###############################
+# Frontend (Node, React, Angular)
+###############################
+node_modules/
+dist/
+build/
+.cache/
+.next/
+.nuxt/
+*.tsbuildinfo
+
+# Env files
+.env
+.env.*
