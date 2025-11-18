@@ -1,4 +1,4 @@
-
+using Microsoft.EntityFrameworkCore;
 namespace BackEndEndpoint
 {
     public class Program
@@ -6,7 +6,20 @@ namespace BackEndEndpoint
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddTransient(typeof(Repository<>));
+            builder.Services.AddDbContext<WinesDbContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration["db:conn"]);
+            });
+            builder.Services.AddCors();
 
+            if (builder.Environment.IsProduction())
+            {
+                builder.WebHost.ConfigureKestrel(options =>
+                {
+                    options.ListenAnyIP(int.Parse(builder.Configuration["settings:port"] ?? "6500"));
+                });
+            }
             // Add services to the container.
 
             builder.Services.AddControllers();
@@ -24,6 +37,12 @@ namespace BackEndEndpoint
             }
 
             app.UseHttpsRedirection();
+
+            app.UseCors(t => t
+            .WithOrigins(builder.Configuration["settings:frontend"] ?? "http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowCredentials()
+            .AllowAnyMethod());
 
             app.UseAuthorization();
 
