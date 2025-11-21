@@ -37,6 +37,7 @@ namespace BackEndEndpoint.Controller
         {
             return _wineRepo.GetAll().Select(z => new WinesViewDto()
             {
+                Id = z.Id,
                 Name = z.Name,
                 Type = z.Type,
                 Year = z.Year,
