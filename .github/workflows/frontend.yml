@@ -10,7 +10,7 @@ jobs:
 
     env:
       APP_DIR: FrontEnd/FrontEnd
-      DIST_DIR: FrontEnd/FrontEnd/dist/todo-manager.frontend/browser  # változtasd a tényleges dist mappára
+      DIST_DIR: FrontEnd/FrontEnd/dist/front-end/browser  # változtasd a tényleges dist mappára
       REMOTE_BASE: /var/frontend
       REMOTE_RELEASES: /var/frontend/releases
       REMOTE_CURRENT: /var/frontend/current
@@ -63,6 +63,7 @@ jobs:
           host: ${{ env.SSH_HOST }}
           username: ${{ env.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASS }}
           source: "frontend-${{ github.sha }}.tar.gz"
           target: "/tmp/"
 
@@ -72,6 +73,7 @@ jobs:
           host: ${{ env.SSH_HOST }}
           username: ${{ env.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASS }}
           script: |
             set -euo pipefail
 
