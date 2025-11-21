@@ -78,7 +78,7 @@ jobs:
             sudo rm -f "/tmp/backend-${{ github.sha }}.tar.gz"
 
             # Felülírás appsettings.json connection string
-            sudo sed -i "s#\"conn\": \".*\"#\"conn\": \"${DB_CONN}\"#" "$NEW_RELEASE/appsettings.json"
+            sudo sed -i "s#\"conn\": \".*\"#\"conn\": \"${TEST_DB_CONN}\"#" "$NEW_RELEASE/appsettings.json"
 
             if [ -n "${{ secrets.REMOTE_OWNER || '' }}" ]; then
               sudo chown -R "${{ secrets.REMOTE_OWNER }}" "$BASE"
