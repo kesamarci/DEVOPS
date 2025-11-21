@@ -21,7 +21,7 @@ jobs:
       SERVICE_NAME: winebackend
 
       FRONTEND_URL: https://kesaszervere.ooguy.com
-      SSH_HOST: api.kesaszervere.ooguy.com
+      SSH_HOST: kesaszervere.ooguy.com
       SSH_USER: root
 
     steps:
