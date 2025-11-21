@@ -1,4 +1,4 @@
-name: Deploy Test Backend
+name: Deploy Backend to Test
 
 on:
   push:
@@ -17,12 +17,12 @@ jobs:
       REMOTE_BASE: /var/testbackend
       REMOTE_RELEASES: /var/testbackend/releases
       REMOTE_CURRENT: /var/testbackend/current
+
       SERVICE_NAME: testbackend
+
       FRONTEND_URL: https://test.kesaszervere.ooguy.com
       SSH_HOST: test.api.kesaszervere.ooguy.com
       SSH_USER: root
-
-      TEST_DB_CONN: ${{ secrets.TEST_DB_CONN }}
 
     steps:
       - name: Checkout repo
@@ -81,22 +81,22 @@ jobs:
           script: |
             set -euo pipefail
 
+            SERVICE="${{ env.SERVICE_NAME }}"
             BASE="${{ env.REMOTE_BASE }}"
             RELEASES="${{ env.REMOTE_RELEASES }}"
             CURRENT="${{ env.REMOTE_CURRENT }}"
             TS="$(date +%Y%m%d%H%M%S)-${{ github.sha }}"
             NEW_RELEASE="${RELEASES}/${TS}"
 
-            # Könyvtárak létrehozása
             sudo mkdir -p "$RELEASES"
             sudo mkdir -p "$BASE"
+            sudo systemctl stop "$SERVICE" || true
+
             sudo mkdir -p "$NEW_RELEASE"
-
-            # Új release kibontása
             sudo tar -xzf "/tmp/app-${{ github.sha }}.tar.gz" -C "$NEW_RELEASE"
-            sudo rm -f "/tmp/app-${{ github.sha }}.tar.gz"
+            sudo rm "/tmp/app-${{ github.sha }}.tar.gz"
 
-            # Frissítés appsettings.json (DB + frontend)
+            # !!! Itt a változtatás: a TEST_DB_CONN secret-et használjuk !!!
             sudo jq \
               --arg conn "${{ secrets.TEST_DB_CONN }}" \
               --arg frontend "${{ env.FRONTEND_URL }}" \
@@ -105,17 +105,15 @@ jobs:
 
             sudo mv "$NEW_RELEASE/appsettings.json.tmp" "$NEW_RELEASE/appsettings.json"
 
-            # Symlink frissítés atomikusan
             sudo ln -sfn "$NEW_RELEASE" "$CURRENT"
 
-            # Régi release-ek takarítása – tartsunk meg 5-öt
-            COUNT=$(ls -1dt "$RELEASES"/* 2>/dev/null | wc -l || true)
+            sudo systemctl daemon-reload
+            sudo systemctl start "$SERVICE"
+            sudo systemctl enable "$SERVICE"
+
+            COUNT=$(ls -1dt "$RELEASES"/* | wc -l || true)
             if [ "$COUNT" -gt 5 ]; then
               ls -1dt "$RELEASES"/* | tail -n +6 | xargs -r sudo rm -rf
             fi
 
-            # Backend futtatása Kestrel-lel a teszt környezethez
-            nohup dotnet "$CURRENT/BackEndEndpoint.dll" &
-
-            echo "✅ Test Backend deploy kész."
-            echo "Current -> $(readlink -f "$CURRENT")"
+            sudo systemctl status "$SERVICE" --no-pager -l || true
