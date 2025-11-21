@@ -35,15 +35,15 @@ namespace BackEndEndpoint.Controller
         [HttpGet]
         public IEnumerable<WinesCreateDto> GetAll()
         {
-            return _wineRepo.GetAll().Select(
-                z=>new WinesCreateDto()
-                {
-                    Name = z.Name,
-                    Type = z.Type,
-                    Year = z.Year,
-                    Price = z.Price,
-                }).ToList();
+            return _wineRepo.GetAll().Select(z => new WinesCreateDto()
+            {
+                Name = z.Name,
+                Type = z.Type,
+                Year = z.Year,
+                Price = z.Price,
+            }).ToList();
         }
+
 
 
         // DELETE: api/wine/{id}
