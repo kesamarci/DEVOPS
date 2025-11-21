@@ -21,7 +21,7 @@ jobs:
       SERVICE_NAME: testbackend
 
       FRONTEND_URL: https://test.kesaszervere.ooguy.com
-      SSH_HOST: test.api.kesaszervere.ooguy.com
+      SSH_HOST: test.kesaszervere.ooguy.com
       SSH_USER: root
 
     steps:
