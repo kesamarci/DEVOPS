@@ -11,8 +11,9 @@ namespace BackEndEndpoint
             {
                 options.UseSqlServer(builder.Configuration["db:conn"]);
             });
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen();
             builder.Services.AddCors();
-
             if (builder.Environment.IsProduction())
             {
                 builder.WebHost.ConfigureKestrel(options =>
@@ -20,13 +21,12 @@ namespace BackEndEndpoint
                     options.ListenAnyIP(int.Parse(builder.Configuration["settings:port"] ?? "6500"));
                 });
             }
+
             // Add services to the container.
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
+           
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -36,15 +36,12 @@ namespace BackEndEndpoint
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
-
             app.UseCors(t => t
             .WithOrigins(builder.Configuration["settings:frontend"] ?? "http://localhost:4200")
             .AllowAnyHeader()
             .AllowCredentials()
             .AllowAnyMethod());
 
-            app.UseAuthorization();
 
 
             app.MapControllers();

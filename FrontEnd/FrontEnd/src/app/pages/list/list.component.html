@@ -1,0 +1,22 @@
+<div class="list-container">
+  <h2 class="title">Wine List</h2>
+
+  <div class="grid">
+    <div class="wine-card" *ngFor="let w of wines">
+
+      <div class="wine-header">
+        <h3>{{ w.name }}</h3>
+        <span class="type">{{ w.type }}</span>
+      </div>
+
+      <div class="wine-body">
+        <p><strong>Year:</strong> {{ w.year }}</p>
+        <p><strong>Price:</strong> {{ w.price }} HUF</p>
+      </div>
+
+      <button class="delete-btn" (click)="delete(w.id!)">
+        Delete
+      </button>
+    </div>
+  </div>
+</div>

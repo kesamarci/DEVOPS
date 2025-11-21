@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Wine } from './models/wine';
+import { WineService } from './services/wine.service';
 
 @Component({
   selector: 'app-root',
@@ -6,6 +8,17 @@ import { Component } from '@angular/core';
   standalone: false,
   styleUrl: './app.component.sass'
 })
-export class AppComponent {
-  title = 'FrontEnd';
+export class AppComponent implements OnInit {
+
+  wines:Wine[]=[];
+  constructor(private wineService: WineService)
+  {
+
+  }
+  
+   ngOnInit() {
+    this.wineService.getAll().subscribe(data => {
+      this.wines = data;
+    });
+  }
 }

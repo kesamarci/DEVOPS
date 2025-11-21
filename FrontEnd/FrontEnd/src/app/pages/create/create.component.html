@@ -1,0 +1,30 @@
+<div class="container">
+  <h2 class="title">Add New Wine</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="card">
+
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" formControlName="name" placeholder="Bor neve" />
+    </div>
+
+    <div class="form-group">
+      <label>Type</label>
+      <input type="text" formControlName="type" placeholder="Vörös, Fehér..." />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Year</label>
+        <input type="number" formControlName="year" />
+      </div>
+
+      <div class="form-group">
+        <label>Price (HUF)</label>
+        <input type="number" formControlName="price" />
+      </div>
+    </div>
+
+    <button class="btn" type="submit">Create</button>
+  </form>
+</div>
