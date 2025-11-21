@@ -14,6 +14,7 @@ jobs:
       REMOTE_RELEASES: /var/testbackend/releases
       REMOTE_CURRENT: /var/testbackend/current
       DB_CONN: ${{ secrets.TEST_DB_CONN }}
+      FRONTEND_URL: "https://test.kesaszervere.ooguy.com"
       SSH_HOST: test.api.kesaszervere.ooguy.com
       SSH_USER: root
 
