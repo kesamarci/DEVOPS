@@ -33,9 +33,9 @@ namespace BackEndEndpoint.Controller
 
         // GET: api/wine
         [HttpGet]
-        public IEnumerable<WinesCreateDto> GetAll()
+        public IEnumerable<WinesViewDto> GetAll()
         {
-            return _wineRepo.GetAll().Select(z => new WinesCreateDto()
+            return _wineRepo.GetAll().Select(z => new WinesViewDto()
             {
                 Name = z.Name,
                 Type = z.Type,
