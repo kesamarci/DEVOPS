@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      PROJECT_PATH: BackEndEndpoint/BackEndEndpoint.csproj
+      PROJECT_PATH: BackEnd/BackEndEndpoint/BackEndEndpoint.csproj
       PUBLISH_DIR: publish
       RUNTIME: linux-x64
       SELF_CONTAINED: "true"
