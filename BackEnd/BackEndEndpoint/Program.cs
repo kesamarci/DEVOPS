@@ -18,7 +18,7 @@ namespace BackEndEndpoint
             {
                 builder.WebHost.ConfigureKestrel(options =>
                 {
-                    options.ListenAnyIP(int.Parse(builder.Configuration["settings:port"] ?? "6500"));
+                    options.ListenAnyIP(int.Parse(builder.Configuration["settings:port"] ?? "6501"));
                 });
             }
 
