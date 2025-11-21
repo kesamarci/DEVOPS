@@ -13,7 +13,6 @@ jobs:
       REMOTE_BASE: /var/testbackend
       REMOTE_RELEASES: /var/testbackend/releases
       REMOTE_CURRENT: /var/testbackend/current
-      DB_CONN: ${{ secrets.TEST_DB_CONN }}
       SSH_HOST: test.api.kesaszervere.ooguy.com
       SSH_USER: root
 
@@ -64,28 +63,36 @@ jobs:
           script: |
             set -euo pipefail
 
+            # Secret átadása shell változóba
+            TEST_DB_CONN="${{ secrets.TEST_DB_CONN }}"
+
             BASE="${{ env.REMOTE_BASE }}"
             RELEASES="${{ env.REMOTE_RELEASES }}"
             CURRENT="${{ env.REMOTE_CURRENT }}"
             TS="$(date +%Y%m%d%H%M%S)-${{ github.sha }}"
             NEW_RELEASE="${RELEASES}/${TS}"
 
+            # Könyvtárak létrehozása, ha még nem léteznek
             sudo mkdir -p "$RELEASES"
             sudo mkdir -p "$BASE"
-
             sudo mkdir -p "$NEW_RELEASE"
+
+            # Új release kibontása
             sudo tar -xzf "/tmp/backend-${{ github.sha }}.tar.gz" -C "$NEW_RELEASE"
             sudo rm -f "/tmp/backend-${{ github.sha }}.tar.gz"
 
-            # Felülírás appsettings.json connection string
+            # Connection string frissítése
             sudo sed -i "s#\"conn\": \".*\"#\"conn\": \"${TEST_DB_CONN}\"#" "$NEW_RELEASE/appsettings.json"
 
+            # Tulajdonos állítása, ha definiálva van
             if [ -n "${{ secrets.REMOTE_OWNER || '' }}" ]; then
               sudo chown -R "${{ secrets.REMOTE_OWNER }}" "$BASE"
             fi
 
+            # Symlink frissítés atomikusan
             sudo ln -sfn "$NEW_RELEASE" "$CURRENT"
 
+            # Régi release-ek takarítása – tartsunk meg 5-öt
             COUNT=$(ls -1dt "$RELEASES"/* 2>/dev/null | wc -l || true)
             if [ "$COUNT" -gt 5 ]; then
               ls -1dt "$RELEASES"/* | tail -n +6 | xargs -r sudo rm -rf
