@@ -14,8 +14,8 @@ jobs:
       REMOTE_BASE: /var/frontend
       REMOTE_RELEASES: /var/frontend/releases
       REMOTE_CURRENT: /var/frontend/current
-      BACKEND_URL: https://api.kesaszervere.ooguy.com
-      SSH_HOST: api.kesaszervere.ooguy.com
+      BACKEND_URL: https://test.api.kesaszervere.ooguy.com
+      SSH_HOST: test.api.kesaszervere.ooguy.com
       SSH_USER: root
 
     steps:
@@ -62,8 +62,8 @@ jobs:
         with:
           host: ${{ env.SSH_HOST }}
           username: ${{ env.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.SSH_PASS }}
+          key: ${{ secrets.TEST_SSH_KEY }}
+          passphrase: ${{ secrets.TEST_SSH_PASS }}
           source: "frontend-${{ github.sha }}.tar.gz"
           target: "/tmp/"
 
@@ -72,8 +72,8 @@ jobs:
         with:
           host: ${{ env.SSH_HOST }}
           username: ${{ env.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          passphrase: ${{ secrets.SSH_PASS }}
+          key: ${{ secrets.TEST_SSH_KEY }}
+          passphrase: ${{ secrets.TEST_SSH_PASS }}
           script: |
             set -euo pipefail
 
