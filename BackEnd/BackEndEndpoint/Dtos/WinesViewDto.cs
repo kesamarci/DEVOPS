@@ -13,5 +13,12 @@ namespace BackEndEndpoint.Dtos
         public string Type { get; set; } = string.Empty;
         public int Year { get; set; }
         public int Price { get; set; }
+        public int Age 
+        { 
+            get 
+            {
+                return DateTime.Now.Year - Year;
+            }
+        }
     }
 }
