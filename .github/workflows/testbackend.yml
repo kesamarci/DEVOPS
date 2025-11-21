@@ -9,51 +9,69 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      APP_DIR: BackEnd/BackEndEndpoint/BackEndEndpoint.csproj
+      PROJECT_PATH: BackEnd/BackEndEndpoint/BackEndEndpoint.csproj
+      PUBLISH_DIR: publish
+      RUNTIME: linux-x64
+      SELF_CONTAINED: "true"
+
       REMOTE_BASE: /var/testbackend
       REMOTE_RELEASES: /var/testbackend/releases
       REMOTE_CURRENT: /var/testbackend/current
+
+      FRONTEND_URL: https://test.kesaszervere.ooguy.com
       SSH_HOST: test.api.kesaszervere.ooguy.com
       SSH_USER: root
 
+      TEST_DB_CONN: ${{ secrets.TEST_DB_CONN }}
+
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "8.0.x"
 
-      - name: Restore dependencies
-        run: dotnet restore ${{ env.APP_DIR }}
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
 
-      - name: Build
-        run: dotnet build ${{ env.APP_DIR }} --configuration Release
+      - name: Restore packages
+        run: dotnet restore ${{ env.PROJECT_PATH }}
 
-      - name: Publish
-        run: dotnet publish ${{ env.APP_DIR }} -c Release -o ./publish
-
-      - name: Pack publish
+      - name: Publish (Release)
         run: |
-          tar -czf backend-${{ github.sha }}.tar.gz -C ./publish .
+          dotnet publish ${{ env.PROJECT_PATH }} \
+            -c Release \
+            -r ${{ env.RUNTIME }} \
+            --self-contained ${{ env.SELF_CONTAINED }} \
+            -o ${{ env.PUBLISH_DIR }}
 
-      - name: Add remote host key
+      - name: Compress artifact
+        run: |
+          tar -C ${{ env.PUBLISH_DIR }} -czf app-${{ github.sha }}.tar.gz .
+
+      - name: Add server fingerprint
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H "${{ env.SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Upload backend via SCP
+      - name: Upload package via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ env.SSH_HOST }}
           username: ${{ env.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASS }}
-          source: "backend-${{ github.sha }}.tar.gz"
+          source: "app-${{ github.sha }}.tar.gz"
           target: "/tmp/"
 
-      - name: Deploy to server
+      - name: Deploy on server
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ env.SSH_HOST }}
@@ -63,31 +81,29 @@ jobs:
           script: |
             set -euo pipefail
 
-            # Secret átadása shell változóba
-            TEST_DB_CONN="${{ secrets.TEST_DB_CONN }}"
-
             BASE="${{ env.REMOTE_BASE }}"
             RELEASES="${{ env.REMOTE_RELEASES }}"
             CURRENT="${{ env.REMOTE_CURRENT }}"
             TS="$(date +%Y%m%d%H%M%S)-${{ github.sha }}"
             NEW_RELEASE="${RELEASES}/${TS}"
 
-            # Könyvtárak létrehozása, ha még nem léteznek
+            # Könyvtárak létrehozása
             sudo mkdir -p "$RELEASES"
             sudo mkdir -p "$BASE"
             sudo mkdir -p "$NEW_RELEASE"
 
             # Új release kibontása
-            sudo tar -xzf "/tmp/backend-${{ github.sha }}.tar.gz" -C "$NEW_RELEASE"
-            sudo rm -f "/tmp/backend-${{ github.sha }}.tar.gz"
+            sudo tar -xzf "/tmp/app-${{ github.sha }}.tar.gz" -C "$NEW_RELEASE"
+            sudo rm -f "/tmp/app-${{ github.sha }}.tar.gz"
 
-            # Connection string frissítése
-            sudo sed -i "s#\"conn\": \".*\"#\"conn\": \"${TEST_DB_CONN}\"#" "$NEW_RELEASE/appsettings.json"
+            # Frissítés appsettings.json (DB + frontend)
+            sudo jq \
+              --arg conn "${{ secrets.TEST_DB_CONN }}" \
+              --arg frontend "${{ env.FRONTEND_URL }}" \
+              '.db.conn = $conn | .settings.frontend = $frontend' \
+              "$NEW_RELEASE/appsettings.json" | sudo tee "$NEW_RELEASE/appsettings.json.tmp" > /dev/null
 
-            # Tulajdonos állítása, ha definiálva van
-            if [ -n "${{ secrets.REMOTE_OWNER || '' }}" ]; then
-              sudo chown -R "${{ secrets.REMOTE_OWNER }}" "$BASE"
-            fi
+            sudo mv "$NEW_RELEASE/appsettings.json.tmp" "$NEW_RELEASE/appsettings.json"
 
             # Symlink frissítés atomikusan
             sudo ln -sfn "$NEW_RELEASE" "$CURRENT"
@@ -97,6 +113,9 @@ jobs:
             if [ "$COUNT" -gt 5 ]; then
               ls -1dt "$RELEASES"/* | tail -n +6 | xargs -r sudo rm -rf
             fi
+
+            # Backend futtatása Kestrel-lel a teszt környezethez
+            nohup dotnet "$CURRENT/BackEndEndpoint.dll" &
 
             echo "✅ Test Backend deploy kész."
             echo "Current -> $(readlink -f "$CURRENT")"
