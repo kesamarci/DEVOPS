@@ -14,8 +14,8 @@ jobs:
       REMOTE_BASE: /var/frontend
       REMOTE_RELEASES: /var/frontend/releases
       REMOTE_CURRENT: /var/frontend/current
-      BACKEND_URL: https://api.kesaszervere.ooguy.com
-      SSH_HOST: api.kesaszervere.ooguy.com
+      BACKEND_URL: https://test.api.kesaszervere.ooguy.com
+      SSH_HOST: test.api.kesaszervere.ooguy.com
       SSH_USER: root
 
     steps:
